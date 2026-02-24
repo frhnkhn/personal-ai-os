@@ -1,59 +1,50 @@
 require("dotenv").config();
-const cors = require("cors");
 const express = require("express");
+const cors = require("cors");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-// Temporary in-memory tasks
+// In-memory tasks (MVP)
 let tasks = [];
 
-// Home route
+// Health check
 app.get("/", (req, res) => {
-  res.send("Personal AI OS (Gemini) running ✅");
+  res.send("Personal AI OS Backend Running ✅");
 });
 
-// Get all tasks
+// Get tasks
 app.get("/tasks", (req, res) => {
   res.json(tasks);
 });
 
-// Add a task
+// Add task
 app.post("/tasks", (req, res) => {
   const { title } = req.body;
+  if (!title) return res.status(400).json({ error: "Title required" });
 
-  if (!title) {
-    return res.status(400).json({ error: "Title is required" });
-  }
-
-  const newTask = {
+  const task = {
     id: Date.now(),
     title,
-    completed: false,
   };
 
-  tasks.push(newTask);
-  res.status(201).json(newTask);
+  tasks.push(task);
+  res.json(task);
 });
 
-// 🧠 AI Planner using Gemini
+// AI planner
 app.get("/ai-plan", async (req, res) => {
   try {
     if (tasks.length === 0) {
-      return res.json({
-        plan: "You have no tasks. Add some tasks first 🙂",
-      });
+      return res.json({ plan: "No tasks found." });
     }
 
-    const taskText = tasks
-      .map((t, i) => `${i + 1}. ${t.title}`)
-      .join("\n");
+    const taskText = tasks.map((t, i) => `${i + 1}. ${t.title}`).join("\n");
 
     const prompt = `
 You are an expert productivity planner.
@@ -61,16 +52,16 @@ You are an expert productivity planner.
 Here are my tasks:
 ${taskText}
 
-Do the following:
+Do ALL of the following:
 1. Assign a priority score (1–10) to each task
-2. Sort tasks from highest to lowest priority
-3. Explain briefly why the top task should be done first
+2. Sort tasks by priority (highest first)
+3. Explain why the top task should be done first
 4. Create a simple plan for today
 
-Respond in this format ONLY:
+Respond EXACTLY in this format:
 
 PRIORITY LIST:
-- Task: <task name> | Score: <number>
+- Task: <task> | Score: <number>
 
 TOP TASK REASON:
 <short explanation>
@@ -82,16 +73,13 @@ TODAY PLAN:
 `;
 
     const result = await model.generateContent(prompt);
-    const response = result.response.text();
-
-    res.json({ plan: response });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Gemini AI failed" });
+    res.json({ plan: result.response.text() });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "AI error" });
   }
 });
 
-// Start server
 app.listen(3001, () => {
-  console.log("Server running on port 3001");
+  console.log("Backend running on port 3001");
 });
