@@ -51,18 +51,34 @@ app.get("/ai-plan", async (req, res) => {
       });
     }
 
-    const taskText = tasks.map((t, i) => `${i + 1}. ${t.title}`).join("\n");
+    const taskText = tasks
+      .map((t, i) => `${i + 1}. ${t.title}`)
+      .join("\n");
 
     const prompt = `
-You are a smart productivity assistant.
+You are an expert productivity planner.
 
 Here are my tasks:
 ${taskText}
 
-Tell me:
-- Which task I should do first
-- Why
-- Keep the answer short and clear
+Do the following:
+1. Assign a priority score (1–10) to each task
+2. Sort tasks from highest to lowest priority
+3. Explain briefly why the top task should be done first
+4. Create a simple plan for today
+
+Respond in this format ONLY:
+
+PRIORITY LIST:
+- Task: <task name> | Score: <number>
+
+TOP TASK REASON:
+<short explanation>
+
+TODAY PLAN:
+- Step 1:
+- Step 2:
+- Step 3:
 `;
 
     const result = await model.generateContent(prompt);
