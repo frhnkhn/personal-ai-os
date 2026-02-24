@@ -5,19 +5,16 @@ function App() {
   const [title, setTitle] = useState("");
   const [aiResponse, setAiResponse] = useState("");
 
-  // Fetch tasks from backend
   const loadTasks = async () => {
     const res = await fetch("http://localhost:3001/tasks");
     const data = await res.json();
     setTasks(data);
   };
 
-  // Run once when page loads
   useEffect(() => {
     loadTasks();
   }, []);
 
-  // Add task
   const addTask = async () => {
     if (!title) return;
 
@@ -31,7 +28,6 @@ function App() {
     loadTasks();
   };
 
-  // Ask AI
   const askAI = async () => {
     const res = await fetch("http://localhost:3001/ai-plan");
     const data = await res.json();
@@ -39,36 +35,57 @@ function App() {
   };
 
   return (
-    <div style={{ padding: 20, maxWidth: 600 }}>
-      <h1>🧠 Personal AI OS</h1>
+    <div className="min-h-screen bg-gray-100 flex justify-center items-start p-6">
+      <div className="bg-white w-full max-w-xl rounded-xl shadow-lg p-6">
+        <h1 className="text-2xl font-bold mb-4 text-center">
+          🧠 Personal AI OS
+        </h1>
 
-      <input
-        placeholder="Enter a task"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        style={{ padding: 8, width: "70%" }}
-      />
-      <button onClick={addTask} style={{ padding: 8, marginLeft: 10 }}>
-        Add Task
-      </button>
-
-      <h3>📋 Tasks</h3>
-      <ul>
-        {tasks.map((t) => (
-          <li key={t.id}>{t.title}</li>
-        ))}
-      </ul>
-
-      <button onClick={askAI} style={{ padding: 10, marginTop: 10 }}>
-        🤖 Ask AI What To Do
-      </button>
-
-      {aiResponse && (
-        <div style={{ marginTop: 20, background: "#eee", padding: 10 }}>
-          <strong>AI says:</strong>
-          <p>{aiResponse}</p>
+        {/* Add Task */}
+        <div className="flex gap-2 mb-4">
+          <input
+            className="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            placeholder="Enter a task"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+          <button
+            onClick={addTask}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          >
+            Add
+          </button>
         </div>
-      )}
+
+        {/* Task List */}
+        <h3 className="font-semibold mb-2">📋 Tasks</h3>
+        <ul className="mb-4 space-y-2">
+          {tasks.map((t) => (
+            <li
+              key={t.id}
+              className="bg-gray-50 border rounded-lg px-3 py-2"
+            >
+              {t.title}
+            </li>
+          ))}
+        </ul>
+
+        {/* Ask AI */}
+        <button
+          onClick={askAI}
+          className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700"
+        >
+          🤖 Ask AI What To Do
+        </button>
+
+        {/* AI Response */}
+        {aiResponse && (
+          <div className="mt-4 bg-purple-50 border border-purple-200 rounded-lg p-3">
+            <strong>AI says:</strong>
+            <p className="mt-1">{aiResponse}</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
